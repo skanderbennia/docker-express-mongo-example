@@ -1,0 +1,32 @@
+version: "3" #using the thrid version of docker compose
+services:
+  mongodb: # this is the name of the container
+    image: mongo # this is the mongodb images
+    ports:
+      - 27018:27017 # this is the configuration of the port the first one is the host port (my pc) and the second is the container port for the mongo
+    environment: # environment variable for the mongodb to create an admin account (required)
+      - MONGO_INITDB_ROOT_USERNAME=admin #admin username
+      - MONGO_INITDB_ROOT_PASSWORD=password # admin password
+    volumes:
+      - mongo-node-data:/data/db # this is the volume that store the data in the database (forgetting this can lead to data removal after rebuild this docker composer)
+  mongo-express: # mongo-express container name
+    image: mongo-express #mongo-express images (this is a tool like MongoCompass builded using a node js server)
+    restart: always # fixes MongoNetworkError when mongodb is not ready when mongo-express starts
+    ports:
+      - 8080:8081 # work on port 8080 on my pc
+    environment:
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=admin # adminUsername the same one in mongodb
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=password # adminPassword the same one in mongodb
+      - ME_CONFIG_MONGODB_SERVER=mongodb # this is the name of the mongodb container and in the same time the address that we are going to use to listen to the server
+  nodejs-mongo-app: # this is the node js application
+    image: nodejs-dockernize-tutorial # this is the image builded from my app
+    restart: always # this restart the server everytime there is an error (i don't know if it's useful for the node js)
+    ports:
+      - 4000:5000 # this application listen on port 4000 on my host pc
+    environment:
+      - EXPRESS_PORT=5000 #express port for the application
+      - MONGO_SERVER=mongodb # the address of the server and the name of the container
+      - MONGO_SERVER_PORT=27017 # this is the port that our application is listening to in the network with the container of the mongodb
+volumes:
+  mongo-node-data:
+    driver: local
